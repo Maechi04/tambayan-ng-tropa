@@ -10,7 +10,7 @@
     import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
     import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
 
-    // Your web app's Firebase configuration
+    // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
       authDomain: "tambayanngtropa-86436.firebaseapp.com",
@@ -25,14 +25,28 @@
     const app = initializeApp(firebaseConfig);
     const analytics = getAnalytics(app);
     const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
 
-    // Expose auth to global window so script.js can access it
+    // Expose globally
     window.firebaseAuth = auth;
-    window.firebaseProvider = new GoogleAuthProvider();
+    window.firebaseProvider = provider;
+    window.signInWithPopup = signInWithPopup;
+    window.signOut = signOut;
   </script>
 
   <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; margin:0; background:#f0f0f0; }
+    .navbar { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .nav-logo .logo-text { font-weight:bold; font-size:20px; }
+    .nav-links button { margin-left:10px; padding:6px 12px; cursor:pointer; border:none; border-radius:4px; background:#4285F4; color:white; display:inline-flex; align-items:center; }
+    .main-container { padding:20px; }
+    .profile-grid { display:flex; gap:20px; flex-wrap:wrap; }
+    .profile-card { background:#fff; padding:15px; border-radius:8px; width:200px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .profile-card img { border-radius:50%; margin-bottom:10px; }
+    .profile-card button { margin-top:8px; background:#34A853; color:white; }
+  </style>
 </head>
 <body>
 
@@ -45,7 +59,11 @@
       <button>Home</button>
       <button>Messages</button>
       <button>Profile</button>
-      <button id="loginBtn">Login</button>
+      <button id="loginBtn">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+             alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;">
+        Sign in with Google
+      </button>
     </div>
   </div>
 
@@ -74,6 +92,39 @@
     </div>
   </div>
 
-  <script type="module" src="script.js"></script>
+  <!-- Script for login/logout and profile buttons -->
+  <script type="module">
+    import { signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+
+    const loginBtn = document.getElementById("loginBtn");
+
+    loginBtn.onclick = () => {
+      signInWithPopup(window.firebaseAuth, window.firebaseProvider)
+        .then((result) => {
+          const user = result.user;
+          alert(`Kumusta, ${user.displayName}! You are logged in.`);
+          loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                                  alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Logout`;
+          loginBtn.onclick = () => {
+            signOut(window.firebaseAuth).then(() => {
+              alert("Logged out!");
+              loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
+                                       alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Sign in with Google`;
+            });
+          };
+        })
+        .catch((error) => {
+          console.error(error);
+          alert("Login failed. Try again.");
+        });
+    };
+
+    const profileButtons = document.querySelectorAll(".profile-card button");
+    profileButtons.forEach(btn => {
+      btn.onclick = () => {
+        alert("Profile page coming soon!");
+      };
+    });
+  </script>
 </body>
 </html>
