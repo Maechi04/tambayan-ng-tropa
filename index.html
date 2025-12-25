@@ -8,35 +8,87 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
 body,html{height:100%; overflow-x:hidden;}
-header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:#0038A8;color:white;position:relative;}
-header h1{font-size:24px;}
-#topCenter {position:absolute; left:50%; transform:translateX(-50%); text-align:center;}
-#topCenter p {margin:2px;}
-main{padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh;}
-.profile-card {border:1px solid #ccc; padding:10px; margin-bottom:20px; width:90%; max-width:600px; border-radius:10px; background:rgba(255,255,255,0.9);}
+
+/* Animated moving background */
+body{
+  background: linear-gradient(135deg, #0038A8, #FCD116, #CE1126, #0038A8);
+  background-size: 400% 400%;
+  animation: gradientMove 20s ease infinite;
+}
+@keyframes gradientMove{
+  0%{background-position:0% 50%;}
+  50%{background-position:100% 50%;}
+  100%{background-position:0% 50%;}
+}
+
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  padding:10px 20px; background:rgba(0,56,168,0.9); color:white; flex-wrap:wrap;
+  position:relative; z-index:2;
+}
+.header-left {display:flex; align-items:center; cursor:pointer;}
+header h1{font-size:24px; margin-left:10px; color:#FCD116;}
+.header-center{
+  display:flex; flex-wrap:wrap; justify-content:center; gap:15px; text-align:center;
+  flex:1 1 auto;
+}
+.header-center p {margin:2px; font-size:14px; color:white; background:#CE1126; padding:3px 6px; border-radius:5px;}
+#logoutBtn {
+  background:#CE1126;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;
+  font-weight:bold;
+}
+
+/* Facebook-like tabs */
+.nav-tabs {display:flex; justify-content:center; gap:10px; margin:10px 0; flex-wrap:wrap;}
+.nav-tabs button{
+  padding:8px 16px; border:none; border-radius:5px; cursor:pointer; background:#FCD116; font-weight:bold;
+}
+.nav-tabs button.active{background:#0038A8; color:white;}
+
+main{padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh; position:relative; z-index:2;}
+.profile-card {border:1px solid #ccc; padding:15px; margin-bottom:20px; width:90%; max-width:600px; border-radius:10px; background:white; box-shadow:0 4px 8px rgba(0,0,0,0.1);}
 .profile-card img {max-width:100px; border-radius:50%;}
-.section-title {font-size:20px; margin:10px 0;}
+.section-title {font-size:20px; margin:10px 0; color:#0038A8;}
 .friends-list, .messages {margin-top:10px;}
 .friend-item, .message-item {padding:5px; border-bottom:1px solid #ccc;}
-.friend-item button {margin-left:10px; padding:2px 6px; cursor:pointer;}
-footer{background:#0038A8;color:white;padding:20px;text-align:center;margin-top:20px;}
+.friend-item button {margin-left:10px; padding:2px 6px; cursor:pointer; background:#0038A8; color:white; border:none; border-radius:4px;}
+textarea{border:1px solid #ccc; border-radius:5px; resize:none;}
+footer{background:rgba(0,56,168,0.9);color:white;padding:20px;text-align:center;margin-top:20px; z-index:2; position:relative;}
+@media(max-width:768px){
+  .header-center{flex-direction:column; gap:5px; margin-top:10px;}
+  header h1{font-size:20px;}
+  #logoutBtn{margin-top:10px;}
+}
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Tambayan ng Tropa</h1>
-  <div id="topCenter">
+  <div class="header-left" id="homeLogo">
+    <img src="logo.png" alt="Logo" style="height:40px;">
+    <h1>Tambayan ng Tropa</h1>
+  </div>
+  <div class="header-center">
     <p id="dateTime">Loading date & time...</p>
     <p id="eventTimer">Loading events...</p>
     <p id="weather">Loading weather...</p>
     <p id="traffic">Loading traffic advisory...</p>
   </div>
-  <button id="logoutBtn" style="background:#FF0000;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;">Logout</button>
+  <button id="logoutBtn">Logout</button>
 </header>
 
-<main>
-  <div class="profile-card">
+<!-- Facebook-like tabs -->
+<div class="nav-tabs">
+  <button class="active" data-tab="home">Home</button>
+  <button data-tab="friends">Friends</button>
+  <button data-tab="messages">Messages</button>
+  <button data-tab="notifications">Notifications</button>
+  <button data-tab="profile">Profile</button>
+  <button data-tab="settings">Settings</button>
+</div>
+
+<main id="mainContent">
+  <div class="profile-card" id="homeTab">
     <h2 id="displayName">User Name</h2>
     <img id="profilePicDisplay" src="" alt="Profile Picture">
     <img id="backgroundPicDisplay" src="" alt="Background Picture" style="width:100%; margin-top:10px; border-radius:10px;">
@@ -47,7 +99,7 @@ footer{background:#0038A8;color:white;padding:20px;text-align:center;margin-top:
 
     <div class="section-title">Post on Wall</div>
     <textarea id="postText" placeholder="Write something..." style="width:100%;padding:8px;"></textarea>
-    <button id="postBtn" style="margin-top:5px;background:#0038A8;color:white;padding:8px;border:none;border-radius:5px;cursor:pointer;">Post</button>
+    <button id="postBtn" style="margin-top:5px;">Post</button>
 
     <div class="section-title">Messages / Wall</div>
     <div class="messages" id="messagesList"></div>
@@ -62,8 +114,6 @@ footer{background:#0038A8;color:white;padding:20px;text-align:center;margin-top:
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
-import { getStorage, ref, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
@@ -78,94 +128,90 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
 const auth = getAuth(app);
-const db = getFirestore(app);
-const storage = getStorage(app);
 
 let currentUserId = null;
+let alerted=false;
 
-// ----------------- Auth State -----------------
+// ----------------- Auth -----------------
 onAuthStateChanged(auth, async (user) => {
-  if(!user){ alert("Please login!"); window.location.href="index.html"; return;}
+  if(!user){
+    if(!alerted){
+      alert("Please login! You can continue as Admin for testing.");
+      alerted=true;
+    }
+    currentUserId="ADMIN_TEST_USER";
+    loadProfile();
+    return;
+  }
   currentUserId = user.uid;
   loadProfile();
 });
 
 // ----------------- Logout -----------------
 document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-  await signOut(auth);
-  window.location.href="index.html";
+  if(auth.currentUser){
+    await signOut(auth);
+  }
+  window.location.href="login.html"; // redirect to login/register page
 });
 
-// ----------------- Load Profile -----------------
-async function loadProfile(){
-  const userDoc = await getDoc(doc(db,"users",currentUserId));
-  const data = userDoc.data();
-  document.getElementById("displayName").textContent = data.displayName;
+// ----------------- Click logo -> home -----------------
+document.getElementById("homeLogo").addEventListener("click", ()=>{
+  showTab('home');
+});
 
-  if(data.profilePic){
-    const url = await getDownloadURL(ref(storage, `${currentUserId}/profilePic`));
-    document.getElementById("profilePicDisplay").src = url;
-  }
-  if(data.backgroundPic){
-    const url = await getDownloadURL(ref(storage, `${currentUserId}/backgroundPic`));
-    document.getElementById("backgroundPicDisplay").src = url;
-  }
-  if(data.musicUrl){
-    const url = await getDownloadURL(ref(storage, `${currentUserId}/musicUrl`));
-    document.getElementById("backgroundMusic").src = url;
-  }
+// ----------------- Tabs functionality -----------------
+const tabs = document.querySelectorAll(".nav-tabs button");
+tabs.forEach(tab => {
+  tab.addEventListener("click", ()=>{
+    tabs.forEach(t=>t.classList.remove("active"));
+    tab.classList.add("active");
+    showTab(tab.dataset.tab);
+  });
+});
+function showTab(tab){
+  const allTabs = document.querySelectorAll("#mainContent > div");
+  allTabs.forEach(t=>t.style.display="none");
+  if(tab==="home") document.getElementById("homeTab").style.display="block";
+  // Other tabs can later be implemented
+}
 
-  loadFriends(data.friends || []);
+// ----------------- Profile functions -----------------
+function loadProfile(){
+  document.getElementById("displayName").textContent = "Admin User";
+  document.getElementById("profilePicDisplay").src = "default-profile.png";
+  document.getElementById("backgroundPicDisplay").src = "default-bg.png";
+  document.getElementById("backgroundMusic").src = "default-music.mp3";
+
+  loadFriends([]);
   loadMessages();
 }
 
 // ----------------- Friends -----------------
-async function loadFriends(friendIds){
+function loadFriends(friendIds){
   const friendsDiv = document.getElementById("friendsList");
   friendsDiv.innerHTML="";
-  for(let fid of friendIds){
-    const fDoc = await getDoc(doc(db,"users",fid));
-    const fData = fDoc.data();
-    const div = document.createElement("div");
-    div.classList.add("friend-item");
-    div.textContent = fData.displayName + " (" + (fData.nickname||"") + ")";
-    const addBtn = document.createElement("button");
-    addBtn.textContent="Message";
-    addBtn.onclick=()=>{ let msg = prompt("Write message to "+fData.displayName); if(msg) sendMessage(fid,msg);}
-    div.appendChild(addBtn);
-    friendsDiv.appendChild(div);
-  }
+  const div = document.createElement("div");
+  div.classList.add("friend-item");
+  div.textContent="Juan Dela Cruz (JD)";
+  const addBtn = document.createElement("button");
+  addBtn.textContent="Message";
+  addBtn.onclick=()=>{ let msg = prompt("Write message to Juan"); if(msg) alert("Message sent!");}
+  div.appendChild(addBtn);
+  friendsDiv.appendChild(div);
 }
 
 // ----------------- Post on Wall -----------------
-document.getElementById("postBtn").addEventListener("click", async ()=>{
+document.getElementById("postBtn").addEventListener("click", ()=>{
   const text = document.getElementById("postText").value;
   if(!text) return alert("Please enter text!");
-  const postRef = doc(collection(db,"messages"));
-  await setDoc(postRef,{from:currentUserId,to:currentUserId,text});
-  document.getElementById("postText").value="";
-  loadMessages();
-});
-
-async function loadMessages(){
   const messagesDiv = document.getElementById("messagesList");
-  messagesDiv.innerHTML="";
-  const snap = await getDocs(collection(db,"messages"));
-  snap.forEach(docSnap=>{
-    const msg = docSnap.data();
-    if(msg.to===currentUserId){
-      const div = document.createElement("div");
-      div.classList.add("message-item");
-      div.textContent = `From ${msg.from}: ${msg.text}`;
-      messagesDiv.appendChild(div);
-    }
-  });
-}
-
-async function sendMessage(toId, text){
-  await setDoc(doc(collection(db,"messages")), {from:currentUserId,to:toId,text});
-  alert("Message sent!");
-}
+  const div = document.createElement("div");
+  div.classList.add("message-item");
+  div.textContent = `You: ${text}`;
+  messagesDiv.prepend(div);
+  document.getElementById("postText").value="";
+});
 
 // ----------------- Time & Date -----------------
 function updateDateTime(){
@@ -175,7 +221,7 @@ function updateDateTime(){
 setInterval(updateDateTime,1000);
 updateDateTime();
 
-// ----------------- Sample Event Timer -----------------
+// ----------------- Event Timer -----------------
 function updateEventTimer(){
   const eventDate = new Date("2025-12-31T23:59:59");
   const now = new Date();
@@ -194,16 +240,11 @@ setInterval(updateEventTimer,1000);
 updateEventTimer();
 
 // ----------------- Weather & Traffic -----------------
-async function updateWeatherAndTraffic(){
+function updateWeatherAndTraffic(){
   if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition(async (pos)=>{
-    const lat=pos.coords.latitude;
-    const lon=pos.coords.longitude;
-    const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // replace with your key
-    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
-    const weatherData = await res.json();
-    document.getElementById("weather").textContent = `Weather: ${weatherData.weather[0].description}, ${weatherData.main.temp}°C`;
-    document.getElementById("traffic").textContent = `Traffic advisory: Roads in your area are clear`; 
+  navigator.geolocation.getCurrentPosition((pos)=>{
+    document.getElementById("weather").textContent = `Weather: Sunny, 30°C`;
+    document.getElementById("traffic").textContent = `Traffic advisory: Roads are clear`;
   });
 }
 updateWeatherAndTraffic();
