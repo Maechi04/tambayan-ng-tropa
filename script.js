@@ -1,7 +1,11 @@
 document.getElementById("loginBtn").onclick = () => {
-  alert("Login feature coming soon!");
+  alert("Login gamit ang Google — coming next!");
 };
 
-document.getElementById("signupBtn").onclick = () => {
-  alert("Sign up feature coming soon!");
-};
+const profileButtons = document.querySelectorAll(".profile-card button");
+
+profileButtons.forEach(btn => {
+  btn.onclick = () => {
+    alert("Profile page coming soon!");
+  };
+});
