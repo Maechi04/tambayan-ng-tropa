@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <title>Tambayan ng Tropa</title>
 
-  <!-- Firebase v12+ SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-    import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+  <!-- Firebase 9 compat SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
+  <script>
     // Your Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
@@ -22,16 +22,9 @@
     };
 
     // Initialize Firebase
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-    const auth = getAuth(app);
-    const provider = new GoogleAuthProvider();
-
-    // Expose globally
-    window.firebaseAuth = auth;
-    window.firebaseProvider = provider;
-    window.signInWithPopup = signInWithPopup;
-    window.signOut = signOut;
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const provider = new firebase.auth.GoogleAuthProvider();
   </script>
 
   <!-- CSS -->
@@ -93,32 +86,31 @@
   </div>
 
   <!-- Script for login/logout and profile buttons -->
-  <script type="module">
-    import { signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
-
+  <script>
     const loginBtn = document.getElementById("loginBtn");
 
     loginBtn.onclick = () => {
-      signInWithPopup(window.firebaseAuth, window.firebaseProvider)
-        .then((result) => {
+      auth.signInWithPopup(provider)
+        .then(result => {
           const user = result.user;
           alert(`Kumusta, ${user.displayName}! You are logged in.`);
           loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
                                   alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Logout`;
           loginBtn.onclick = () => {
-            signOut(window.firebaseAuth).then(() => {
+            auth.signOut().then(() => {
               alert("Logged out!");
               loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
                                        alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Sign in with Google`;
             });
           };
         })
-        .catch((error) => {
-          console.error(error);
+        .catch(err => {
+          console.error(err);
           alert("Login failed. Try again.");
         });
     };
 
+    // Profile button alerts
     const profileButtons = document.querySelectorAll(".profile-card button");
     profileButtons.forEach(btn => {
       btn.onclick = () => {
