@@ -1,255 +1,212 @@
 <!DOCTYPE html>
-<html lang="tl">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Tambayan ng Tropa</title>
-
-  <!-- Firebase 9 compat SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    // Firebase config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
-      authDomain: "tambayanngtropa-86436.firebaseapp.com",
-      projectId: "tambayanngtropa-86436",
-      storageBucket: "tambayanngtropa-86436.firebasestorage.app",
-      messagingSenderId: "1056515077642",
-      appId: "1:1056515077642:web:6e4638e28f93dda68b11f3",
-      measurementId: "G-R093DGT56H"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-  </script>
-
-  <link rel="stylesheet" href="style.css" />
-  <style>
-    body { font-family: Arial, sans-serif; margin:0; background:#f0f0f0; }
-    .navbar { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .nav-logo { display:flex; align-items:center; }
-    .nav-logo img { width:40px; height:40px; margin-right:10px; }
-    .nav-logo .logo-text { font-weight:bold; font-size:20px; }
-    .nav-links button { margin-left:10px; padding:6px 12px; cursor:pointer; border:none; border-radius:4px; background:#4285F4; color:white; display:inline-flex; align-items:center; }
-    .main-container { padding:20px; }
-    .profile-grid { display:flex; gap:20px; flex-wrap:wrap; }
-    .profile-card { background:#fff; padding:15px; border-radius:8px; width:220px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .profile-card img { border-radius:50%; margin-bottom:10px; width:100px; height:100px; }
-    .profile-card button { margin-top:5px; background:#34A853; color:white; cursor:pointer; border:none; padding:6px 10px; border-radius:4px; display:block; margin:5px auto 0; }
-    textarea { width:90%; margin-top:8px; padding:5px; border-radius:4px; border:1px solid #ccc; resize:none; }
-    audio { width:90%; margin-top:8px; }
-    label { font-size:12px; display:block; margin-top:5px; }
-    /* Admin modal styling */
-    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); justify-content:center; align-items:center; }
-    .modal-content { background:#fff; padding:20px; border-radius:8px; width:300px; text-align:center; position:relative; }
-    .modal-content input[type="password"] { width:80%; padding:6px; margin-top:10px; border-radius:4px; border:1px solid #ccc; }
-    .modal-content button { margin-top:15px; padding:6px 12px; cursor:pointer; border:none; border-radius:4px; background:#34A853; color:white; }
-    .eye-icon { cursor:pointer; position:absolute; right:35px; top:73px; font-size:18px; color:#333; }
-    .close-btn { position:absolute; top:10px; right:15px; cursor:pointer; font-weight:bold; font-size:18px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tambayan ng Tropa - Profile</title>
+<link rel="stylesheet" href="style.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
+body,html{height:100%; overflow-x:hidden;}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:#0038A8;color:white;position:relative;}
+header h1{font-size:24px;}
+#topCenter {position:absolute; left:50%; transform:translateX(-50%); text-align:center;}
+#topCenter p {margin:2px;}
+main{padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh;}
+.profile-card {border:1px solid #ccc; padding:10px; margin-bottom:20px; width:90%; max-width:600px; border-radius:10px; background:rgba(255,255,255,0.9);}
+.profile-card img {max-width:100px; border-radius:50%;}
+.section-title {font-size:20px; margin:10px 0;}
+.friends-list, .messages {margin-top:10px;}
+.friend-item, .message-item {padding:5px; border-bottom:1px solid #ccc;}
+.friend-item button {margin-left:10px; padding:2px 6px; cursor:pointer;}
+footer{background:#0038A8;color:white;padding:20px;text-align:center;margin-top:20px;}
+</style>
 </head>
 <body>
 
-  <!-- NAVBAR -->
-  <div class="navbar">
-    <div class="nav-logo">
-      <img src="logo.png" alt="Tambayan ng Tropa Logo">
-      <span class="logo-text">Tambayan ng Tropa 🇵🇭</span>
-    </div>
-    <div class="nav-links">
-      <button>Home</button>
-      <button>Messages</button>
-      <button>Profile</button>
-      <button id="loginBtn">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-             alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;">
-        Sign in with Google
-      </button>
-      <button id="adminBtn">Admin Access</button>
-    </div>
+<header>
+  <h1>Tambayan ng Tropa</h1>
+  <div id="topCenter">
+    <p id="dateTime">Loading date & time...</p>
+    <p id="eventTimer">Loading events...</p>
+    <p id="weather">Loading weather...</p>
+    <p id="traffic">Loading traffic advisory...</p>
   </div>
+  <button id="logoutBtn" style="background:#FF0000;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;">Logout</button>
+</header>
 
-  <!-- MAIN CONTENT -->
-  <div class="main-container">
-    <h2>Mga Tambay Ngayon</h2>
-    <div class="profile-grid">
+<main>
+  <div class="profile-card">
+    <h2 id="displayName">User Name</h2>
+    <img id="profilePicDisplay" src="" alt="Profile Picture">
+    <img id="backgroundPicDisplay" src="" alt="Background Picture" style="width:100%; margin-top:10px; border-radius:10px;">
+    <audio id="backgroundMusic" controls style="width:100%; margin-top:10px;"></audio>
 
-      <!-- Profile Card 1 -->
-      <div class="profile-card" data-profile="juan">
-        <img src="https://via.placeholder.com/100" alt="Juan Dela Cruz">
-        <h3>Juan Dela Cruz</h3>
-        <p>Mahilig sa music 🎵</p>
-        <textarea id="about-juan" placeholder="Write something about yourself..." rows="3"></textarea>
-        <label for="music-upload-juan">Upload your MP3:</label>
-        <input type="file" id="music-upload-juan" accept=".mp3">
-        <audio controls loop id="music-juan">
-          <source src="music/track1.mp3" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
-        <button>Add Friend</button>
-        <button>Message</button>
-        <button>Like</button>
-      </div>
+    <div class="section-title">Friends</div>
+    <div class="friends-list" id="friendsList"></div>
 
-      <!-- Profile Card 2 -->
-      <div class="profile-card" data-profile="maria">
-        <img src="https://via.placeholder.com/100" alt="Maria Clara">
-        <h3>Maria Clara</h3>
-        <p>Loves old-school vibes ✨</p>
-        <textarea id="about-maria" placeholder="Write something about yourself..." rows="3"></textarea>
-        <label for="music-upload-maria">Upload your MP3:</label>
-        <input type="file" id="music-upload-maria" accept=".mp3">
-        <audio controls loop id="music-maria">
-          <source src="music/track2.mp3" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
-        <button>Add Friend</button>
-        <button>Message</button>
-        <button>Like</button>
-      </div>
+    <div class="section-title">Post on Wall</div>
+    <textarea id="postText" placeholder="Write something..." style="width:100%;padding:8px;"></textarea>
+    <button id="postBtn" style="margin-top:5px;background:#0038A8;color:white;padding:8px;border:none;border-radius:5px;cursor:pointer;">Post</button>
 
-      <!-- Profile Card 3 -->
-      <div class="profile-card" data-profile="pedro">
-        <img src="https://via.placeholder.com/100" alt="Pedro Penduko">
-        <h3>Pedro Penduko</h3>
-        <p>Tropa forever 🤝</p>
-        <textarea id="about-pedro" placeholder="Write something about yourself..." rows="3"></textarea>
-        <label for="music-upload-pedro">Upload your MP3:</label>
-        <input type="file" id="music-upload-pedro" accept=".mp3">
-        <audio controls loop id="music-pedro">
-          <source src="music/track3.mp3" type="audio/mpeg">
-          Your browser does not support the audio element.
-        </audio>
-        <button>Add Friend</button>
-        <button>Message</button>
-        <button>Like</button>
-      </div>
-
-    </div>
+    <div class="section-title">Messages / Wall</div>
+    <div class="messages" id="messagesList"></div>
   </div>
+</main>
 
-  <!-- ADMIN MODAL -->
-  <div class="modal" id="adminModal">
-    <div class="modal-content">
-      <span class="close-btn" id="adminClose">&times;</span>
-      <h3>Admin Access</h3>
-      <input type="password" id="adminPassword" placeholder="Enter password">
-      <span class="eye-icon" id="toggleEye">&#128065;</span>
-      <button id="adminLoginBtn">Login</button>
-    </div>
-  </div>
+<footer>
+  <p>Tambayan ng Tropa &copy; 2025</p>
+</footer>
 
-  <!-- SCRIPT -->
-  <script>
-    // Firebase login
-    const loginBtn = document.getElementById("loginBtn");
-    const provider = new firebase.auth.GoogleAuthProvider();
-    loginBtn.onclick = () => {
-      auth.signInWithPopup(provider)
-        .then(result => {
-          const user = result.user;
-          alert(`Kumusta, ${user.displayName}! You are logged in.`);
-          loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-                                  alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Logout`;
-          loginBtn.onclick = () => {
-            auth.signOut().then(() => {
-              alert("Logged out!");
-              loginBtn.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" 
-                                       alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;"> Sign in with Google`;
-            });
-          };
-        })
-        .catch(err => {
-          console.error(err);
-          alert(`Login failed!\nError code: ${err.code}\nMessage: ${err.message}`);
-        });
-    };
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js";
+import { getStorage, ref, getDownloadURL, uploadBytes } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-storage.js";
 
-    // Only one music track plays at a time
-    const musicTracks = document.querySelectorAll("audio");
-    musicTracks.forEach(track => {
-      track.addEventListener("play", () => {
-        musicTracks.forEach(t => {
-          if(t !== track) t.pause();
-        });
-      });
-    });
+const firebaseConfig = {
+  apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
+  authDomain: "tambayanngtropa-86436.firebaseapp.com",
+  projectId: "tambayanngtropa-86436",
+  storageBucket: "tambayanngtropa-86436.appspot.com",
+  messagingSenderId: "1056515077642",
+  appId: "1:1056515077642:web:6e4638e28f93dda68b11f3",
+  measurementId: "G-R093DGT56H"
+};
 
-    // Profile buttons placeholder
-    const profileButtons = document.querySelectorAll(".profile-card button");
-    profileButtons.forEach(btn => btn.onclick = () => alert("Feature coming soon!"));
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
 
-    // Save About Me locally
-    const aboutFields = document.querySelectorAll("textarea");
-    aboutFields.forEach(field => {
-      const saved = localStorage.getItem(field.id);
-      if(saved) field.value = saved;
-      field.addEventListener("input", () => localStorage.setItem(field.id, field.value));
-    });
+let currentUserId = null;
 
-    // Handle user MP3 upload per profile
-    function handleMusicUpload(inputId, audioId, profileId) {
-      const fileInput = document.getElementById(inputId);
-      const audioElem = document.getElementById(audioId);
-      const savedUrl = localStorage.getItem(`music-${profileId}`);
-      if(savedUrl) audioElem.src = savedUrl;
+// ----------------- Auth State -----------------
+onAuthStateChanged(auth, async (user) => {
+  if(!user){ alert("Please login!"); window.location.href="index.html"; return;}
+  currentUserId = user.uid;
+  loadProfile();
+});
 
-      fileInput.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if(file && file.type === "audio/mpeg") {
-          const objectUrl = URL.createObjectURL(file);
-          audioElem.src = objectUrl;
-          audioElem.play();
-          localStorage.setItem(`music-${profileId}`, objectUrl);
-          alert(`Now playing your uploaded track: ${file.name}`);
-        } else {
-          alert("Please upload a valid MP3 file.");
-        }
-      });
+// ----------------- Logout -----------------
+document.getElementById("logoutBtn").addEventListener("click", async ()=>{
+  await signOut(auth);
+  window.location.href="index.html";
+});
+
+// ----------------- Load Profile -----------------
+async function loadProfile(){
+  const userDoc = await getDoc(doc(db,"users",currentUserId));
+  const data = userDoc.data();
+  document.getElementById("displayName").textContent = data.displayName;
+
+  if(data.profilePic){
+    const url = await getDownloadURL(ref(storage, `${currentUserId}/profilePic`));
+    document.getElementById("profilePicDisplay").src = url;
+  }
+  if(data.backgroundPic){
+    const url = await getDownloadURL(ref(storage, `${currentUserId}/backgroundPic`));
+    document.getElementById("backgroundPicDisplay").src = url;
+  }
+  if(data.musicUrl){
+    const url = await getDownloadURL(ref(storage, `${currentUserId}/musicUrl`));
+    document.getElementById("backgroundMusic").src = url;
+  }
+
+  loadFriends(data.friends || []);
+  loadMessages();
+}
+
+// ----------------- Friends -----------------
+async function loadFriends(friendIds){
+  const friendsDiv = document.getElementById("friendsList");
+  friendsDiv.innerHTML="";
+  for(let fid of friendIds){
+    const fDoc = await getDoc(doc(db,"users",fid));
+    const fData = fDoc.data();
+    const div = document.createElement("div");
+    div.classList.add("friend-item");
+    div.textContent = fData.displayName + " (" + (fData.nickname||"") + ")";
+    const addBtn = document.createElement("button");
+    addBtn.textContent="Message";
+    addBtn.onclick=()=>{ let msg = prompt("Write message to "+fData.displayName); if(msg) sendMessage(fid,msg);}
+    div.appendChild(addBtn);
+    friendsDiv.appendChild(div);
+  }
+}
+
+// ----------------- Post on Wall -----------------
+document.getElementById("postBtn").addEventListener("click", async ()=>{
+  const text = document.getElementById("postText").value;
+  if(!text) return alert("Please enter text!");
+  const postRef = doc(collection(db,"messages"));
+  await setDoc(postRef,{from:currentUserId,to:currentUserId,text});
+  document.getElementById("postText").value="";
+  loadMessages();
+});
+
+async function loadMessages(){
+  const messagesDiv = document.getElementById("messagesList");
+  messagesDiv.innerHTML="";
+  const snap = await getDocs(collection(db,"messages"));
+  snap.forEach(docSnap=>{
+    const msg = docSnap.data();
+    if(msg.to===currentUserId){
+      const div = document.createElement("div");
+      div.classList.add("message-item");
+      div.textContent = `From ${msg.from}: ${msg.text}`;
+      messagesDiv.appendChild(div);
     }
+  });
+}
 
-    handleMusicUpload("music-upload-juan", "music-juan", "juan");
-    handleMusicUpload("music-upload-maria", "music-maria", "maria");
-    handleMusicUpload("music-upload-pedro", "music-pedro", "pedro");
+async function sendMessage(toId, text){
+  await setDoc(doc(collection(db,"messages")), {from:currentUserId,to:toId,text});
+  alert("Message sent!");
+}
 
-    // Admin Access
-    const adminBtn = document.getElementById("adminBtn");
-    const adminModal = document.getElementById("adminModal");
-    const adminClose = document.getElementById("adminClose");
-    const adminPasswordInput = document.getElementById("adminPassword");
-    const toggleEye = document.getElementById("toggleEye");
-    const adminLoginBtn = document.getElementById("adminLoginBtn");
+// ----------------- Time & Date -----------------
+function updateDateTime(){
+  const now = new Date();
+  document.getElementById("dateTime").textContent = now.toLocaleString();
+}
+setInterval(updateDateTime,1000);
+updateDateTime();
 
-    // Pre-set admin password
-    const ADMIN_PASSWORD = "Kenichi";
+// ----------------- Sample Event Timer -----------------
+function updateEventTimer(){
+  const eventDate = new Date("2025-12-31T23:59:59");
+  const now = new Date();
+  const diff = eventDate-now;
+  if(diff>0){
+    const days=Math.floor(diff/1000/60/60/24);
+    const hours=Math.floor(diff/1000/60/60)%24;
+    const mins=Math.floor(diff/1000/60)%60;
+    const secs=Math.floor(diff/1000)%60;
+    document.getElementById("eventTimer").textContent = `Next Event: New Year in ${days}d ${hours}h ${mins}m ${secs}s`;
+  }else{
+    document.getElementById("eventTimer").textContent="No upcoming events";
+  }
+}
+setInterval(updateEventTimer,1000);
+updateEventTimer();
 
-    adminBtn.onclick = () => adminModal.style.display = "flex";
-    adminClose.onclick = () => adminModal.style.display = "none";
-
-    toggleEye.onclick = () => {
-      if(adminPasswordInput.type === "password") adminPasswordInput.type = "text";
-      else adminPasswordInput.type = "password";
-    }
-
-    adminLoginBtn.onclick = () => {
-      if(adminPasswordInput.value === ADMIN_PASSWORD) {
-        alert("Welcome Admin! You now have full access.");
-        adminModal.style.display = "none";
-        adminPasswordInput.value = "";
-        // Here you can enable admin-only features
-      } else {
-        alert("Incorrect password!");
-        adminPasswordInput.value = "";
-      }
-    }
-
-    // Close modal when clicking outside
-    window.onclick = (event) => {
-      if(event.target === adminModal) adminModal.style.display = "none";
-    }
-  </script>
+// ----------------- Weather & Traffic -----------------
+async function updateWeatherAndTraffic(){
+  if(!navigator.geolocation) return;
+  navigator.geolocation.getCurrentPosition(async (pos)=>{
+    const lat=pos.coords.latitude;
+    const lon=pos.coords.longitude;
+    const apiKey = "YOUR_OPENWEATHERMAP_API_KEY"; // replace with your key
+    const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${apiKey}`);
+    const weatherData = await res.json();
+    document.getElementById("weather").textContent = `Weather: ${weatherData.weather[0].description}, ${weatherData.main.temp}°C`;
+    document.getElementById("traffic").textContent = `Traffic advisory: Roads in your area are clear`; 
+  });
+}
+updateWeatherAndTraffic();
+</script>
 </body>
 </html>
