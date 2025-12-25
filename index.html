@@ -21,23 +21,27 @@
       measurementId: "G-R093DGT56H"
     };
 
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
+    const db = firebase.firestore();
   </script>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
   <style>
     body { font-family: Arial, sans-serif; margin:0; background:#f0f0f0; }
     .navbar { display:flex; justify-content:space-between; align-items:center; padding:10px 20px; background:#fff; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .nav-logo { display:flex; align-items:center; }
+    .nav-logo img { width:40px; height:40px; margin-right:10px; }
     .nav-logo .logo-text { font-weight:bold; font-size:20px; }
     .nav-links button { margin-left:10px; padding:6px 12px; cursor:pointer; border:none; border-radius:4px; background:#4285F4; color:white; display:inline-flex; align-items:center; }
     .main-container { padding:20px; }
     .profile-grid { display:flex; gap:20px; flex-wrap:wrap; }
-    .profile-card { background:#fff; padding:15px; border-radius:8px; width:200px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
-    .profile-card img { border-radius:50%; margin-bottom:10px; }
-    .profile-card button { margin-top:8px; background:#34A853; color:white; }
+    .profile-card { background:#fff; padding:15px; border-radius:8px; width:220px; text-align:center; box-shadow:0 2px 5px rgba(0,0,0,0.1); }
+    .profile-card img { border-radius:50%; margin-bottom:10px; width:100px; height:100px; }
+    .profile-card button { margin-top:5px; background:#34A853; color:white; cursor:pointer; border:none; padding:6px 10px; border-radius:4px; display:block; margin:5px auto 0; }
+    textarea { width:90%; margin-top:8px; padding:5px; border-radius:4px; border:1px solid #ccc; resize:none; }
+    audio { width:90%; margin-top:8px; }
+    label { font-size:12px; display:block; margin-top:5px; }
   </style>
 </head>
 <body>
@@ -45,6 +49,7 @@
   <!-- NAVBAR -->
   <div class="navbar">
     <div class="nav-logo">
+      <img src="logo.png" alt="Tambayan ng Tropa Logo">
       <span class="logo-text">Tambayan ng Tropa 🇵🇭</span>
     </div>
     <div class="nav-links">
@@ -56,6 +61,7 @@
              alt="Google" style="width:18px; vertical-align:middle; margin-right:6px;">
         Sign in with Google
       </button>
+      <button id="adminBtn">Admin Access</button>
     </div>
   </div>
 
@@ -63,32 +69,66 @@
   <div class="main-container">
     <h2>Mga Tambay Ngayon</h2>
     <div class="profile-grid">
-      <div class="profile-card">
-        <img src="https://via.placeholder.com/100" />
+
+      <!-- Profile Card 1 -->
+      <div class="profile-card" data-profile="juan">
+        <img src="https://via.placeholder.com/100" alt="Juan Dela Cruz">
         <h3>Juan Dela Cruz</h3>
         <p>Mahilig sa music 🎵</p>
-        <button>View Profile</button>
+        <textarea id="about-juan" placeholder="Write something about yourself..." rows="3"></textarea>
+        <label for="music-upload-juan">Upload your MP3:</label>
+        <input type="file" id="music-upload-juan" accept=".mp3">
+        <audio controls loop id="music-juan">
+          <source src="music/track1.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <button>Add Friend</button>
+        <button>Message</button>
+        <button>Like</button>
       </div>
-      <div class="profile-card">
-        <img src="https://via.placeholder.com/100" />
+
+      <!-- Profile Card 2 -->
+      <div class="profile-card" data-profile="maria">
+        <img src="https://via.placeholder.com/100" alt="Maria Clara">
         <h3>Maria Clara</h3>
         <p>Loves old-school vibes ✨</p>
-        <button>View Profile</button>
+        <textarea id="about-maria" placeholder="Write something about yourself..." rows="3"></textarea>
+        <label for="music-upload-maria">Upload your MP3:</label>
+        <input type="file" id="music-upload-maria" accept=".mp3">
+        <audio controls loop id="music-maria">
+          <source src="music/track2.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <button>Add Friend</button>
+        <button>Message</button>
+        <button>Like</button>
       </div>
-      <div class="profile-card">
-        <img src="https://via.placeholder.com/100" />
+
+      <!-- Profile Card 3 -->
+      <div class="profile-card" data-profile="pedro">
+        <img src="https://via.placeholder.com/100" alt="Pedro Penduko">
         <h3>Pedro Penduko</h3>
         <p>Tropa forever 🤝</p>
-        <button>View Profile</button>
+        <textarea id="about-pedro" placeholder="Write something about yourself..." rows="3"></textarea>
+        <label for="music-upload-pedro">Upload your MP3:</label>
+        <input type="file" id="music-upload-pedro" accept=".mp3">
+        <audio controls loop id="music-pedro">
+          <source src="music/track3.mp3" type="audio/mpeg">
+          Your browser does not support the audio element.
+        </audio>
+        <button>Add Friend</button>
+        <button>Message</button>
+        <button>Like</button>
       </div>
+
     </div>
   </div>
 
-  <!-- Script for login/logout and profile buttons -->
+  <!-- SCRIPT -->
   <script>
+    // Firebase login
     const loginBtn = document.getElementById("loginBtn");
     const provider = new firebase.auth.GoogleAuthProvider();
-
     loginBtn.onclick = () => {
       auth.signInWithPopup(provider)
         .then(result => {
@@ -110,13 +150,80 @@
         });
     };
 
-    // Profile button alerts
-    const profileButtons = document.querySelectorAll(".profile-card button");
-    profileButtons.forEach(btn => {
-      btn.onclick = () => {
-        alert("Profile page coming soon!");
-      };
+    // Only one music track plays at a time
+    const musicTracks = document.querySelectorAll("audio");
+    musicTracks.forEach(track => {
+      track.addEventListener("play", () => {
+        musicTracks.forEach(t => {
+          if(t !== track) t.pause();
+        });
+      });
     });
+
+    // Profile buttons placeholder
+    const profileButtons = document.querySelectorAll(".profile-card button");
+    profileButtons.forEach(btn => btn.onclick = () => alert("Feature coming soon!"));
+
+    // Save About Me locally
+    const aboutFields = document.querySelectorAll("textarea");
+    aboutFields.forEach(field => {
+      const saved = localStorage.getItem(field.id);
+      if(saved) field.value = saved;
+      field.addEventListener("input", () => localStorage.setItem(field.id, field.value));
+    });
+
+    // Handle user MP3 upload per profile
+    function handleMusicUpload(inputId, audioId, profileId) {
+      const fileInput = document.getElementById(inputId);
+      const audioElem = document.getElementById(audioId);
+
+      // Load saved music for visitors
+      const savedUrl = localStorage.getItem(`music-${profileId}`);
+      if(savedUrl) audioElem.src = savedUrl;
+
+      fileInput.addEventListener("change", (e) => {
+        const file = e.target.files[0];
+        if(file && file.type === "audio/mpeg") {
+          const objectUrl = URL.createObjectURL(file);
+          audioElem.src = objectUrl;
+          audioElem.play();
+          // Save so other visitors hear it (temporary, localStorage)
+          localStorage.setItem(`music-${profileId}`, objectUrl);
+          alert(`Now playing your uploaded track: ${file.name}`);
+        } else {
+          alert("Please upload a valid MP3 file.");
+        }
+      });
+    }
+
+    handleMusicUpload("music-upload-juan", "music-juan", "juan");
+    handleMusicUpload("music-upload-maria", "music-maria", "maria");
+    handleMusicUpload("music-upload-pedro", "music-pedro", "pedro");
+
+    // Admin Access
+    const adminBtn = document.getElementById("adminBtn");
+    adminBtn.onclick = () => {
+      let currentPassword = localStorage.getItem("admin-password");
+
+      if(!currentPassword) {
+        let newPass = prompt("Set your Admin password:");
+        if(newPass && newPass.length >= 4) {
+          localStorage.setItem("admin-password", newPass);
+          alert("Admin password saved! You can now access admin features.");
+        } else {
+          alert("Password must be at least 4 characters.");
+        }
+      } else {
+        let inputPass = prompt("Enter Admin password:");
+        if(inputPass === currentPassword) {
+          alert("Welcome, Admin! You now have full access.");
+          // Admin-only features can go here
+        } else {
+          alert("Incorrect password!");
+        }
+      }
+    };
+
   </script>
 </body>
 </html>
