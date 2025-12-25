@@ -3,251 +3,183 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tambayan ng Tropa - Profile</title>
+<title>Tambayan ng Tropa</title>
 <link rel="stylesheet" href="style.css">
+<script type="module" src="https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js"></script>
+<script type="module" src="https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Arial,sans-serif;}
-body,html{height:100%; overflow-x:hidden;}
-
-/* Animated moving background */
-body{
-  background: linear-gradient(135deg, #0038A8, #FCD116, #CE1126, #0038A8);
-  background-size: 400% 400%;
-  animation: gradientMove 20s ease infinite;
+/* Basic styling */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #0038a8, #fff, #ce1126);
+    color: #333;
 }
-@keyframes gradientMove{
-  0%{background-position:0% 50%;}
-  50%{background-position:100% 50%;}
-  100%{background-position:0% 50%;}
+#loginModal {
+    position: fixed;
+    top:0; left:0; width:100%; height:100%;
+    display:flex; justify-content:center; align-items:center;
+    background: rgba(0,0,0,0.6);
+    z-index:1000;
 }
-
-header{
-  display:flex; justify-content:space-between; align-items:center;
-  padding:10px 20px; background:rgba(0,56,168,0.9); color:white; flex-wrap:wrap;
-  position:relative; z-index:2;
+.modal-content {
+    background:#fff;
+    padding:20px;
+    border-radius:10px;
+    width:300px;
+    position:relative;
 }
-.header-left {display:flex; align-items:center; cursor:pointer;}
-header h1{font-size:24px; margin-left:10px; color:#FCD116;}
-.header-center{
-  display:flex; flex-wrap:wrap; justify-content:center; gap:15px; text-align:center;
-  flex:1 1 auto;
+.modal-content h2 {margin-top:0;}
+.close-btn {
+    position:absolute;
+    top:10px; right:10px;
+    cursor:pointer;
 }
-.header-center p {margin:2px; font-size:14px; color:white; background:#CE1126; padding:3px 6px; border-radius:5px;}
-#logoutBtn {
-  background:#CE1126;color:white;padding:8px 16px;border:none;border-radius:5px;cursor:pointer;
-  font-weight:bold;
-}
-
-/* Facebook-like tabs */
-.nav-tabs {display:flex; justify-content:center; gap:10px; margin:10px 0; flex-wrap:wrap;}
-.nav-tabs button{
-  padding:8px 16px; border:none; border-radius:5px; cursor:pointer; background:#FCD116; font-weight:bold;
-}
-.nav-tabs button.active{background:#0038A8; color:white;}
-
-main{padding:20px; display:flex; flex-direction:column; align-items:center; min-height:80vh; position:relative; z-index:2;}
-.profile-card {border:1px solid #ccc; padding:15px; margin-bottom:20px; width:90%; max-width:600px; border-radius:10px; background:white; box-shadow:0 4px 8px rgba(0,0,0,0.1);}
-.profile-card img {max-width:100px; border-radius:50%;}
-.section-title {font-size:20px; margin:10px 0; color:#0038A8;}
-.friends-list, .messages {margin-top:10px;}
-.friend-item, .message-item {padding:5px; border-bottom:1px solid #ccc;}
-.friend-item button {margin-left:10px; padding:2px 6px; cursor:pointer; background:#0038A8; color:white; border:none; border-radius:4px;}
-textarea{border:1px solid #ccc; border-radius:5px; resize:none;}
-footer{background:rgba(0,56,168,0.9);color:white;padding:20px;text-align:center;margin-top:20px; z-index:2; position:relative;}
-@media(max-width:768px){
-  .header-center{flex-direction:column; gap:5px; margin-top:10px;}
-  header h1{font-size:20px;}
-  #logoutBtn{margin-top:10px;}
-}
+button {padding:10px 15px; margin-top:10px; cursor:pointer;}
+#profilePage {display:none;}
+#tabs {margin-top:20px;}
+.tab {display:inline-block; margin-right:10px; cursor:pointer; padding:5px 10px; background:#fff; border-radius:5px;}
+#wallPosts {margin-top:20px;}
 </style>
 </head>
 <body>
 
-<header>
-  <div class="header-left" id="homeLogo">
-    <img src="logo.png" alt="Logo" style="height:40px;">
-    <h1>Tambayan ng Tropa</h1>
+<!-- Login/Register Modal -->
+<div id="loginModal">
+  <div class="modal-content">
+    <span class="close-btn" id="closeModal">&times;</span>
+    <h2>Tambayan ng Tropa</h2>
+    <input type="text" id="nicknameInput" placeholder="Nickname"><br>
+    <button id="googleLogin">Sign in with Google</button>
+    <button id="adminLoginBtn">Admin Access</button>
   </div>
-  <div class="header-center">
-    <p id="dateTime">Loading date & time...</p>
-    <p id="eventTimer">Loading events...</p>
-    <p id="weather">Loading weather...</p>
-    <p id="traffic">Loading traffic advisory...</p>
-  </div>
-  <button id="logoutBtn">Logout</button>
-</header>
-
-<!-- Facebook-like tabs -->
-<div class="nav-tabs">
-  <button class="active" data-tab="home">Home</button>
-  <button data-tab="friends">Friends</button>
-  <button data-tab="messages">Messages</button>
-  <button data-tab="notifications">Notifications</button>
-  <button data-tab="profile">Profile</button>
-  <button data-tab="settings">Settings</button>
 </div>
 
-<main id="mainContent">
-  <div class="profile-card" id="homeTab">
-    <h2 id="displayName">User Name</h2>
-    <img id="profilePicDisplay" src="" alt="Profile Picture">
-    <img id="backgroundPicDisplay" src="" alt="Background Picture" style="width:100%; margin-top:10px; border-radius:10px;">
-    <audio id="backgroundMusic" controls style="width:100%; margin-top:10px;"></audio>
+<!-- Profile Page -->
+<div id="profilePage">
+    <div id="header" style="display:flex; align-items:center;">
+        <img id="profilePic" src="logo.png" alt="Profile" width="80" style="border-radius:50%; margin-right:15px;">
+        <div>
+            <h3 id="fullName">Full Name</h3>
+            <p id="nickname">(Nickname)</p>
+        </div>
+        <button id="logoutBtn" style="margin-left:auto;">Logout</button>
+    </div>
 
-    <div class="section-title">Friends</div>
-    <div class="friends-list" id="friendsList"></div>
+    <!-- Tabs -->
+    <div id="tabs">
+        <div class="tab" id="tabHome">Home</div>
+        <div class="tab" id="tabFriends">Friends</div>
+        <div class="tab" id="tabMessages">Messages</div>
+        <div class="tab" id="tabNotifications">Notifications</div>
+        <div class="tab" id="tabSettings">Settings</div>
+    </div>
 
-    <div class="section-title">Post on Wall</div>
-    <textarea id="postText" placeholder="Write something..." style="width:100%;padding:8px;"></textarea>
-    <button id="postBtn" style="margin-top:5px;">Post</button>
-
-    <div class="section-title">Messages / Wall</div>
-    <div class="messages" id="messagesList"></div>
-  </div>
-</main>
-
-<footer>
-  <p>Tambayan ng Tropa &copy; 2025</p>
-</footer>
+    <!-- Wall posts -->
+    <div id="wallPosts"></div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-analytics.js";
-import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-auth.js";
+import { getDatabase, ref, set, get, child, push } from "https://www.gstatic.com/firebasejs/12.7.0/firebase-database.js";
 
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
   authDomain: "tambayanngtropa-86436.firebaseapp.com",
+  databaseURL: "https://tambayanngtropa-86436-default-rtdb.firebaseio.com",
   projectId: "tambayanngtropa-86436",
   storageBucket: "tambayanngtropa-86436.appspot.com",
   messagingSenderId: "1056515077642",
-  appId: "1:1056515077642:web:6e4638e28f93dda68b11f3",
-  measurementId: "G-R093DGT56H"
+  appId: "1:1056515077642:web:6e4638e28f93dda68b11f3"
 };
 
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
+const db = getDatabase(app);
+const provider = new GoogleAuthProvider();
 
-let currentUserId = null;
-let alerted=false;
+// Elements
+const loginModal = document.getElementById('loginModal');
+const googleLogin = document.getElementById('googleLogin');
+const adminLoginBtn = document.getElementById('adminLoginBtn');
+const closeModal = document.getElementById('closeModal');
+const profilePage = document.getElementById('profilePage');
+const logoutBtn = document.getElementById('logoutBtn');
+const fullNameEl = document.getElementById('fullName');
+const nicknameEl = document.getElementById('nickname');
+const profilePicEl = document.getElementById('profilePic');
 
-// ----------------- Auth -----------------
-onAuthStateChanged(auth, async (user) => {
-  if(!user){
-    if(!alerted){
-      alert("Please login! You can continue as Admin for testing.");
-      alerted=true;
+// Close modal button
+closeModal.onclick = ()=>{ loginModal.style.display='none'; }
+
+// Admin login
+adminLoginBtn.onclick = ()=>{
+    let password = prompt("Enter Admin Password:");
+    if(password==="Kenichi"){
+        // Load admin user data from Realtime Database
+        get(child(ref(db), 'users/admin')).then((snapshot)=>{
+            if(snapshot.exists()){
+                showProfile(snapshot.val());
+            } else {
+                alert("Admin user not found in DB!");
+            }
+        });
+    } else {
+        alert("Wrong password!");
     }
-    currentUserId="ADMIN_TEST_USER";
-    loadProfile();
-    return;
-  }
-  currentUserId = user.uid;
-  loadProfile();
-});
-
-// ----------------- Logout -----------------
-document.getElementById("logoutBtn").addEventListener("click", async ()=>{
-  if(auth.currentUser){
-    await signOut(auth);
-  }
-  window.location.href="login.html"; // redirect to login/register page
-});
-
-// ----------------- Click logo -> home -----------------
-document.getElementById("homeLogo").addEventListener("click", ()=>{
-  showTab('home');
-});
-
-// ----------------- Tabs functionality -----------------
-const tabs = document.querySelectorAll(".nav-tabs button");
-tabs.forEach(tab => {
-  tab.addEventListener("click", ()=>{
-    tabs.forEach(t=>t.classList.remove("active"));
-    tab.classList.add("active");
-    showTab(tab.dataset.tab);
-  });
-});
-function showTab(tab){
-  const allTabs = document.querySelectorAll("#mainContent > div");
-  allTabs.forEach(t=>t.style.display="none");
-  if(tab==="home") document.getElementById("homeTab").style.display="block";
-  // Other tabs can later be implemented
 }
 
-// ----------------- Profile functions -----------------
-function loadProfile(){
-  document.getElementById("displayName").textContent = "Admin User";
-  document.getElementById("profilePicDisplay").src = "default-profile.png";
-  document.getElementById("backgroundPicDisplay").src = "default-bg.png";
-  document.getElementById("backgroundMusic").src = "default-music.mp3";
-
-  loadFriends([]);
-  loadMessages();
+// Google login
+googleLogin.onclick = ()=>{
+    signInWithPopup(auth, provider).then((result)=>{
+        const user = result.user;
+        // Save user to Realtime Database if new
+        set(ref(db, 'users/' + user.uid), {
+            fullName: user.displayName,
+            nickname: user.displayName,
+            profilePic: user.photoURL,
+            backgroundPic: "default-bg.png",
+            music: "default-music.mp3",
+            friends: {},
+            friendRequests: {}
+        });
+        showProfile({
+            fullName: user.displayName,
+            nickname: user.displayName,
+            profilePic: user.photoURL,
+            backgroundPic: "default-bg.png",
+            music: "default-music.mp3"
+        });
+    }).catch((err)=>{ console.log(err); alert("Login failed!") });
 }
 
-// ----------------- Friends -----------------
-function loadFriends(friendIds){
-  const friendsDiv = document.getElementById("friendsList");
-  friendsDiv.innerHTML="";
-  const div = document.createElement("div");
-  div.classList.add("friend-item");
-  div.textContent="Juan Dela Cruz (JD)";
-  const addBtn = document.createElement("button");
-  addBtn.textContent="Message";
-  addBtn.onclick=()=>{ let msg = prompt("Write message to Juan"); if(msg) alert("Message sent!");}
-  div.appendChild(addBtn);
-  friendsDiv.appendChild(div);
+// Logout
+logoutBtn.onclick = ()=>{
+    signOut(auth).then(()=>{
+        profilePage.style.display='none';
+        loginModal.style.display='flex';
+    });
 }
 
-// ----------------- Post on Wall -----------------
-document.getElementById("postBtn").addEventListener("click", ()=>{
-  const text = document.getElementById("postText").value;
-  if(!text) return alert("Please enter text!");
-  const messagesDiv = document.getElementById("messagesList");
-  const div = document.createElement("div");
-  div.classList.add("message-item");
-  div.textContent = `You: ${text}`;
-  messagesDiv.prepend(div);
-  document.getElementById("postText").value="";
-});
-
-// ----------------- Time & Date -----------------
-function updateDateTime(){
-  const now = new Date();
-  document.getElementById("dateTime").textContent = now.toLocaleString();
+// Show profile
+function showProfile(data){
+    loginModal.style.display='none';
+    profilePage.style.display='block';
+    fullNameEl.textContent = data.fullName;
+    nicknameEl.textContent = `(${data.nickname})`;
+    profilePicEl.src = data.profilePic;
+    // Background music (auto-play)
+    let audio = document.createElement('audio');
+    audio.src = data.music;
+    audio.autoplay = true;
+    audio.loop = true;
+    profilePage.appendChild(audio);
 }
-setInterval(updateDateTime,1000);
-updateDateTime();
 
-// ----------------- Event Timer -----------------
-function updateEventTimer(){
-  const eventDate = new Date("2025-12-31T23:59:59");
-  const now = new Date();
-  const diff = eventDate-now;
-  if(diff>0){
-    const days=Math.floor(diff/1000/60/60/24);
-    const hours=Math.floor(diff/1000/60/60)%24;
-    const mins=Math.floor(diff/1000/60)%60;
-    const secs=Math.floor(diff/1000)%60;
-    document.getElementById("eventTimer").textContent = `Next Event: New Year in ${days}d ${hours}h ${mins}m ${secs}s`;
-  }else{
-    document.getElementById("eventTimer").textContent="No upcoming events";
-  }
-}
-setInterval(updateEventTimer,1000);
-updateEventTimer();
-
-// ----------------- Weather & Traffic -----------------
-function updateWeatherAndTraffic(){
-  if(!navigator.geolocation) return;
-  navigator.geolocation.getCurrentPosition((pos)=>{
-    document.getElementById("weather").textContent = `Weather: Sunny, 30°C`;
-    document.getElementById("traffic").textContent = `Traffic advisory: Roads are clear`;
-  });
-}
-updateWeatherAndTraffic();
 </script>
 </body>
 </html>
