@@ -10,7 +10,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // Your Firebase configuration
+    // Firebase config
     const firebaseConfig = {
       apiKey: "AIzaSyAnJGJRlBw1spQ-1dY5L1miVyQ5ptnoNV4",
       authDomain: "tambayanngtropa-86436.firebaseapp.com",
@@ -24,7 +24,6 @@
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const provider = new firebase.auth.GoogleAuthProvider();
   </script>
 
   <!-- CSS -->
@@ -88,6 +87,7 @@
   <!-- Script for login/logout and profile buttons -->
   <script>
     const loginBtn = document.getElementById("loginBtn");
+    const provider = new firebase.auth.GoogleAuthProvider();
 
     loginBtn.onclick = () => {
       auth.signInWithPopup(provider)
@@ -106,7 +106,7 @@
         })
         .catch(err => {
           console.error(err);
-          alert("Login failed. Try again.");
+          alert(`Login failed!\nError code: ${err.code}\nMessage: ${err.message}`);
         });
     };
 
